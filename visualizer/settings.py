@@ -39,6 +39,7 @@ ALLOWED_HOSTS = [
 
 CSRF_TRUSTED_ORIGINS = [
     "https://visuliser-backend-production.up.railway.app",
+    "http://localhost:5173",
 ]
 
 
