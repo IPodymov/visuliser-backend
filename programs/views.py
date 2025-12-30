@@ -7,6 +7,7 @@ from django.views.decorators.cache import cache_page
 from .models import EducationalProgram, Discipline
 from .serializers import EducationalProgramSerializer
 from .analysis import CompetencyAnalyzer
+from .filters import ProgramFilter
 from users.permissions import IsStaffOrAdminOrReadOnly
 
 
@@ -16,7 +17,7 @@ class ProgramListView(generics.ListCreateAPIView):
     serializer_class = EducationalProgramSerializer
     permission_classes = [IsStaffOrAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    filterset_fields = ["education_level", "year", "faculty"]
+    filterset_class = ProgramFilter
     search_fields = ["profile", "direction", "aup_number"]
 
 
