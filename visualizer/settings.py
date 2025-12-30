@@ -30,7 +30,16 @@ SECRET_KEY = 'django-insecure-jd=hgb71g@6y+py*)k&tz$d=$_8x-)2xmmejzsn7^n#cp*x_a@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'visuliser-backend-production.up.railway.app',
+    'localhost',
+    '127.0.0.1',
+    '.railway.app'
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://visuliser-backend-production.up.railway.app',
+]
 
 
 # Application definition
