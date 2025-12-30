@@ -1,6 +1,5 @@
 from django.db import models
 
-
 class EducationalProgram(models.Model):
     aup_number = models.CharField(max_length=50, verbose_name="Номер АУП")
     education_type = models.CharField(max_length=100, verbose_name="Вид образования")
@@ -16,6 +15,9 @@ class EducationalProgram(models.Model):
     standard_type = models.CharField(max_length=100, verbose_name="Тип стандарта")
     faculty = models.CharField(max_length=255, verbose_name="Факультет")
     year = models.IntegerField(verbose_name="Год набора", null=True, blank=True)
+    
+    # Type hint for reverse relation
+    disciplines: models.Manager["Discipline"]
 
     def __str__(self):
         return f"{self.aup_number} - {self.profile} ({self.year})"
