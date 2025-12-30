@@ -4,6 +4,17 @@ from .models import Discipline
 
 
 class CompetencyAnalyzer:
+    # Descriptions for each competency area
+    DESCRIPTIONS = {
+        "CE": "Computer Engineering (Компьютерная инженерия) - Аппаратное обеспечение, электроника, микропроцессоры.",
+        "CS": "Computer Science (Компьютерные науки) - Алгоритмы, математика, искусственный интеллект, теория.",
+        "SE": "Software Engineering (Программная инженерия) - Разработка ПО, тестирование, управление проектами.",
+        "IT": "Information Technology (Информационные технологии) - Администрирование, сети, инфраструктура.",
+        "IS": "Information Systems (Информационные системы) - Бизнес-процессы, управление предприятием, ERP/CRM.",
+        "CSEC": "Cybersecurity (Кибербезопасность) - Защита информации, криптография, безопасность сетей.",
+        "DS": "Data Science (Наука о данных) - Анализ данных, статистика, машинное обучение.",
+    }
+
     # Keywords for each competency area (Russian)
     KEYWORDS = {
         "CE": [

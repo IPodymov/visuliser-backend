@@ -1,18 +1,22 @@
 from rest_framework import generics, views, status
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from .models import EducationalProgram, Discipline
 from .serializers import EducationalProgramSerializer
 from .analysis import CompetencyAnalyzer
 from users.permissions import IsStaffOrAdminOrReadOnly
 
 
+@method_decorator(cache_page(60 * 15), name="dispatch")
 class ProgramListView(generics.ListCreateAPIView):
     queryset = EducationalProgram.objects.all()
     serializer_class = EducationalProgramSerializer
     permission_classes = [IsStaffOrAdminOrReadOnly]
 
 
+@method_decorator(cache_page(60 * 15), name="dispatch")
 class ProgramDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = EducationalProgram.objects.all()
     serializer_class = EducationalProgramSerializer
@@ -21,6 +25,7 @@ class ProgramDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class ProgramAnalysisView(views.APIView):
+    @method_decorator(cache_page(60 * 15))
     def get(self, request, id):
         program = get_object_or_404(EducationalProgram, id=id)
         disciplines = program.disciplines.all()
@@ -29,11 +34,16 @@ class ProgramAnalysisView(views.APIView):
         result = analyzer.analyze(disciplines)
 
         return Response(
-            {"program": f"{program.aup_number} - {program.profile}", "analysis": result}
+            {
+                "program": f"{program.aup_number} - {program.profile}",
+                "analysis": result,
+                "legend": CompetencyAnalyzer.DESCRIPTIONS,
+            }
         )
 
 
 class CompareProgramsView(views.APIView):
+    @method_decorator(cache_page(60 * 15))
     def get(self, request):
         ids = request.query_params.getlist("ids")
         if not ids:
@@ -55,4 +65,4 @@ class CompareProgramsView(views.APIView):
                 }
             )
 
-        return Response(results)
+        return Response({"results": results, "legend": CompetencyAnalyzer.DESCRIPTIONS})
