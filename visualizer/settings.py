@@ -40,6 +40,7 @@ ALLOWED_HOSTS = [
 
 CSRF_TRUSTED_ORIGINS = [
     "https://visuliser-backend-production.up.railway.app",
+    "visualizer-front-production.up.railway.app/",
     "http://localhost:5173",
 ]
 
@@ -48,6 +49,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "https://visuliser-backend-production.up.railway.app",
+    "https://visualizer-front-production.up.railway.app",
 ]
 CORS_ALLOW_CREDENTIALS = True
 
