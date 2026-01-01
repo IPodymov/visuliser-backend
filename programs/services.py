@@ -4,6 +4,11 @@ from .models import EducationalProgram, Discipline
 from .constants import *
 
 
+class InvalidProgramError(Exception):
+    """Raised when program data is invalid (e.g., profile is 'nan')"""
+    pass
+
+
 class ExcelParser:
     """
     Responsible for reading Excel files and extracting raw data.
@@ -24,6 +29,22 @@ class ExcelParser:
         except Exception as e:
             raise ValueError(f"Failed to parse disciplines data from {file_path}: {e}")
 
+    def parse_program_data_from_file(self, file_obj):
+        """Parse program data from an uploaded file object"""
+        try:
+            df = pd.read_excel(file_obj, sheet_name=PROGRAM_SHEET_INDEX, header=None)
+            return dict(zip(df[0], df[1]))
+        except Exception as e:
+            raise ValueError(f"Failed to parse program data: {e}")
+
+    def parse_disciplines_data_from_file(self, file_obj):
+        """Parse disciplines data from an uploaded file object"""
+        try:
+            df = pd.read_excel(file_obj, sheet_name=DISCIPLINES_SHEET_INDEX)
+            return df
+        except Exception as e:
+            raise ValueError(f"Failed to parse disciplines data: {e}")
+
 
 class ProgramImporter:
     """
@@ -34,6 +55,15 @@ class ProgramImporter:
     def __init__(self, parser: ExcelParser):
         self.parser = parser
 
+    def _validate_profile(self, profile):
+        """Validate that profile is not 'nan' or empty"""
+        if profile is None:
+            raise InvalidProgramError("Profile cannot be empty")
+        
+        profile_str = str(profile).strip().lower()
+        if profile_str == "nan" or profile_str == "":
+            raise InvalidProgramError(f"Invalid profile value: '{profile}'. Profile cannot be 'nan' or empty.")
+
     @transaction.atomic
     def import_from_file(self, file_path, year=None):
         program_data = self.parser.parse_program_data(file_path)
@@ -41,6 +71,10 @@ class ProgramImporter:
 
         if not aup_number:
             return None, False, "No AUP number found"
+
+        # Validate profile
+        profile = program_data.get(COL_PROFILE)
+        self._validate_profile(profile)
 
         program, created = EducationalProgram.objects.update_or_create(
             aup_number=aup_number,
@@ -50,7 +84,7 @@ class ProgramImporter:
                 "direction": program_data.get(COL_DIRECTION),
                 "direction_code": program_data.get(COL_DIRECTION_CODE),
                 "qualification": program_data.get(COL_QUALIFICATION),
-                "profile": program_data.get(COL_PROFILE),
+                "profile": profile,
                 "standard_type": program_data.get(COL_STANDARD_TYPE),
                 "faculty": program_data.get(COL_FACULTY),
                 "year": year,
@@ -61,9 +95,51 @@ class ProgramImporter:
 
         return program, created, None
 
+    @transaction.atomic
+    def import_from_uploaded_file(self, file_obj, year=None):
+        """Import program from an uploaded file object"""
+        program_data = self.parser.parse_program_data_from_file(file_obj)
+        aup_number = program_data.get(COL_AUP_NUMBER)
+
+        if not aup_number:
+            return None, False, "No AUP number found"
+
+        # Validate profile
+        profile = program_data.get(COL_PROFILE)
+        self._validate_profile(profile)
+
+        program, created = EducationalProgram.objects.update_or_create(
+            aup_number=aup_number,
+            defaults={
+                "education_type": program_data.get(COL_EDUCATION_TYPE),
+                "education_level": program_data.get(COL_EDUCATION_LEVEL),
+                "direction": program_data.get(COL_DIRECTION),
+                "direction_code": program_data.get(COL_DIRECTION_CODE),
+                "qualification": program_data.get(COL_QUALIFICATION),
+                "profile": profile,
+                "standard_type": program_data.get(COL_STANDARD_TYPE),
+                "faculty": program_data.get(COL_FACULTY),
+                "year": year,
+            },
+        )
+
+        # Reset file position for reading disciplines
+        file_obj.seek(0)
+        self._import_disciplines_from_file(file_obj, program)
+
+        return program, created, None
+
     def _import_disciplines(self, file_path, program):
         df = self.parser.parse_disciplines_data(file_path)
+        return self._save_disciplines(df, program)
 
+    def _import_disciplines_from_file(self, file_obj, program):
+        """Import disciplines from an uploaded file object"""
+        df = self.parser.parse_disciplines_data_from_file(file_obj)
+        return self._save_disciplines(df, program)
+
+    def _save_disciplines(self, df, program):
+        """Save disciplines from DataFrame to database"""
         # Clear existing disciplines to ensure idempotency
         Discipline.objects.filter(program=program).delete()
 

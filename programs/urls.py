@@ -4,6 +4,7 @@ from .views import (
     ProgramDetailView,
     ProgramAnalysisView,
     CompareProgramsView,
+    UploadProgramView,
 )
 
 urlpatterns = [
@@ -15,4 +16,5 @@ urlpatterns = [
         name="program-analysis",
     ),
     path("programs/compare/", CompareProgramsView.as_view(), name="programs-compare"),
+    path("programs/upload/", UploadProgramView.as_view(), name="program-upload"),
 ]
