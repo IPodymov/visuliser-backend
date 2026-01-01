@@ -7,7 +7,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.core.cache import cache
 from .models import EducationalProgram, Discipline
-from .serializers import EducationalProgramSerializer
+from .serializers import EducationalProgramSerializer, EducationalProgramListSerializer
 from .analysis import CompetencyAnalyzer
 from .filters import ProgramFilter
 from .services import ExcelParser, ProgramImporter, InvalidProgramError
@@ -17,7 +17,7 @@ from users.permissions import IsStaffOrAdminOrReadOnly
 @method_decorator(cache_page(60 * 15), name="dispatch")
 class ProgramListView(generics.ListCreateAPIView):
     queryset = EducationalProgram.objects.exclude(profile="nan")
-    serializer_class = EducationalProgramSerializer
+    serializer_class = EducationalProgramListSerializer
     permission_classes = [IsStaffOrAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_class = ProgramFilter

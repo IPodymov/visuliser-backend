@@ -32,7 +32,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     "visuliser-backend-production.up.railway.app",
-    "visualizer-front-production.up.railway.app/",
+    "visualizer-front-production.up.railway.app",
     "localhost",
     "127.0.0.1",
     ".railway.app",
@@ -40,7 +40,7 @@ ALLOWED_HOSTS = [
 
 CSRF_TRUSTED_ORIGINS = [
     "https://visuliser-backend-production.up.railway.app",
-    "visualizer-front-production.up.railway.app/",
+    "https://visualizer-front-production.up.railway.app",
     "http://localhost:5173",
 ]
 

@@ -51,6 +51,24 @@ class GroupedDisciplineSerializer(serializers.Serializer):
     semesters = SemesterInfoSerializer(many=True)
 
 
+class EducationalProgramListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EducationalProgram
+        fields = [
+            "id",
+            "aup_number",
+            "education_type",
+            "education_level",
+            "direction",
+            "direction_code",
+            "qualification",
+            "profile",
+            "standard_type",
+            "faculty",
+            "year",
+        ]
+
+
 class EducationalProgramSerializer(serializers.ModelSerializer):
     disciplines = serializers.SerializerMethodField()
 
