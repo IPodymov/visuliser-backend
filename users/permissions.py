@@ -9,9 +9,9 @@ class IsStaffOrAdminOrReadOnly(permissions.BasePermission):
     """
 
     def has_permission(self, request, view):
-        # Read permissions are allowed to any authenticated user
+        # Read permissions are allowed to any user
         if request.method in permissions.SAFE_METHODS:
-            return bool(request.user and request.user.is_authenticated)
+            return True
 
         # Write permissions are only allowed to staff or admin
         if not (request.user and request.user.is_authenticated):
