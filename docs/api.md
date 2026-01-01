@@ -67,7 +67,7 @@
 ### Детальная информация о программе
 *   **URL**: `/programs/<id>/`
 *   **Method**: `GET`
-*   **Response**: Детальная информация о программе, включая список всех дисциплин.
+*   **Response**: Детальная информация о программе, включая **сгруппированный** список дисциплин с информацией о семестрах и видах сдачи.
     ```json
     {
         "id": 1,
@@ -75,16 +75,31 @@
         "profile": "Корпоративные информационные системы",
         "disciplines": [
             {
-                "id": 101,
                 "name": "История России",
                 "code": "Б1.1.1",
-                "zet": "0.94",
-                ...
+                "block": "Блок 1",
+                "part": "Обязательная часть",
+                "module": null,
+                "total_zet": 3.98,
+                "semesters": [
+                    {
+                        "semester": "Шестой семестр",
+                        "control_types": ["Зачет"]
+                    },
+                    {
+                        "semester": "Седьмой семестр",
+                        "control_types": ["Экзамен"]
+                    }
+                ]
             },
             ...
         ]
     }
     ```
+
+> **Примечание**: Дисциплины группируются по названию. Для каждой дисциплины показаны:
+> - `total_zet` — суммарные зачётные единицы
+> - `semesters` — список семестров с видами контроля (Экзамен, Зачет, Курсовой проект и т.д.)
 
 ### Анализ программы
 *   **URL**: `/programs/<id>/analysis/`
@@ -139,3 +154,44 @@
         }
     }
     ```
+
+### Загрузка программы из Excel
+*   **URL**: `/programs/upload/`
+*   **Method**: `POST`
+*   **Доступ**: Только для сотрудников и администраторов
+*   **Content-Type**: `multipart/form-data`
+*   **Body**:
+    *   `file` (required): Excel файл (.xlsx) с учебным планом
+    *   `year` (optional): Год набора (целое число)
+*   **Response (успех)**:
+    ```json
+    {
+        "message": "Program successfully created",
+        "program": {
+            "id": 42,
+            "aup_number": "000021234",
+            "profile": "Название профиля",
+            "year": 2025
+        }
+    }
+    ```
+*   **Response (ошибка валидации)**:
+    ```json
+    {
+        "error": "Invalid profile value: 'nan'. Profile cannot be 'nan' or empty."
+    }
+    ```
+*   **Коды ответа**:
+    *   `201 Created` — программа успешно создана
+    *   `200 OK` — программа обновлена
+    *   `400 Bad Request` — ошибка валидации (неверный формат файла, пустой профиль, "nan" в профиле)
+    *   `403 Forbidden` — недостаточно прав
+    *   `500 Internal Server Error` — ошибка обработки файла
+
+**Пример cURL запроса:**
+```bash
+curl -X POST http://localhost:8000/api/programs/upload/ \
+  -H "Cookie: sessionid=<session_id>" \
+  -F "file=@/path/to/program.xlsx" \
+  -F "year=2025"
+```

@@ -6,6 +6,7 @@ from .constants import *
 
 class InvalidProgramError(Exception):
     """Raised when program data is invalid (e.g., profile is 'nan')"""
+
     pass
 
 
@@ -59,10 +60,12 @@ class ProgramImporter:
         """Validate that profile is not 'nan' or empty"""
         if profile is None:
             raise InvalidProgramError("Profile cannot be empty")
-        
+
         profile_str = str(profile).strip().lower()
         if profile_str == "nan" or profile_str == "":
-            raise InvalidProgramError(f"Invalid profile value: '{profile}'. Profile cannot be 'nan' or empty.")
+            raise InvalidProgramError(
+                f"Invalid profile value: '{profile}'. Profile cannot be 'nan' or empty."
+            )
 
     @transaction.atomic
     def import_from_file(self, file_path, year=None):

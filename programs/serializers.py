@@ -77,7 +77,7 @@ class EducationalProgramSerializer(serializers.ModelSerializer):
 
         # Группируем по названию дисциплины
         grouped: dict[str, dict] = {}
-        
+
         def get_group(name: str) -> dict:
             if name not in grouped:
                 grouped[name] = {
