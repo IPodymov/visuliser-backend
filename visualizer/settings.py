@@ -53,6 +53,13 @@ CORS_ALLOWED_ORIGINS = [
 ]
 CORS_ALLOW_CREDENTIALS = True
 
+# Cookie settings for cross-site requests
+SESSION_COOKIE_SAMESITE = "None"
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SAMESITE = "None"
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_HTTPONLY = False  # Allow frontend to read CSRF token
+
 
 # Application definition
 
@@ -106,9 +113,7 @@ WSGI_APPLICATION = "visualizer.wsgi.application"
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    "default": dj_database_url.config(
-        default=os.environ.get("DATABASE_URL"), conn_max_age=600
-    )
+    "default": dj_database_url.config(default=os.environ.get("DATABASE_URL"), conn_max_age=600)
 }
 
 # Caching
