@@ -1,6 +1,7 @@
 import django_filters
 from .models import EducationalProgram
 
+
 class ProgramFilter(django_filters.FilterSet):
     year = django_filters.NumberFilter(field_name="year")
     year__gte = django_filters.NumberFilter(field_name="year", lookup_expr='gte')

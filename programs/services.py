@@ -1,7 +1,30 @@
 import pandas as pd
 from django.db import transaction
 from .models import EducationalProgram, Discipline
-from .constants import *
+from .constants import (
+    PROGRAM_SHEET_INDEX,
+    DISCIPLINES_SHEET_INDEX,
+    COL_AUP_NUMBER,
+    COL_EDUCATION_TYPE,
+    COL_EDUCATION_LEVEL,
+    COL_DIRECTION,
+    COL_DIRECTION_CODE,
+    COL_QUALIFICATION,
+    COL_PROFILE,
+    COL_STANDARD_TYPE,
+    COL_FACULTY,
+    COL_BLOCK,
+    COL_CODE,
+    COL_PART,
+    COL_MODULE,
+    COL_RECORD_TYPE,
+    COL_DISCIPLINE_NAME,
+    COL_PERIOD,
+    COL_LOAD_TYPE,
+    COL_AMOUNT,
+    COL_MEASUREMENT_UNIT,
+    COL_ZET,
+)
 
 
 class InvalidProgramError(Exception):
