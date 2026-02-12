@@ -112,7 +112,7 @@ class ProgramImporter:
         # But we might still use it to uniquely identify during import? Or identifying by profile/direction/year?
         # The prompt says: "Exclude use of aup_number when searching and creating programs."
         # So we should use something else. Direction + Profile + Year is a good candidate for uniqueness.
-        
+
         # Validate profile
         profile = program_data.get(COL_PROFILE)
         self._validate_profile(profile)
@@ -161,7 +161,7 @@ class ProgramImporter:
     def import_from_uploaded_file(self, file_obj, year=None):
         """Import program from an uploaded file object"""
         program_data = self.parser.parse_program_data_from_file(file_obj)
-        
+
         # Validate profile
         profile = program_data.get(COL_PROFILE)
         self._validate_profile(profile)
@@ -218,17 +218,17 @@ class ProgramImporter:
 
     def _save_disciplines(self, df, program):
         """Save disciplines from DataFrame to database"""
-        # We generally don't delete existing disciplines if we are updating, 
+        # We generally don't delete existing disciplines if we are updating,
         # unless we want to do a full refresh of the program's disciplines.
         # But if we update_or_create the program, creating duplicates is a risk.
         # The prompt says: "Before saving new discipline, check if same one exists in this program and semester."
 
         created_count = 0
-        
+
         for _, row in df.iterrows():
             # Handle NaN values
             row_data = {k: (v if pd.notnull(v) else None) for k, v in row.items()}
-            
+
             discipline_name = row_data.get(COL_DISCIPLINE_NAME)
             if not discipline_name:
                 continue
@@ -253,7 +253,7 @@ class ProgramImporter:
             module = None
             if module_name:
                 module, _ = DisciplineModule.objects.get_or_create(name=module_name)
-            
+
             load_type_name = row_data.get(COL_LOAD_TYPE)
             load_type = None
             if load_type_name:
@@ -263,19 +263,16 @@ class ProgramImporter:
             # A duplicate is defined as same program, same semester, same name, same code?
             # Or just same name in same semester for this program.
             # Let's include code as well if present.
-            
+
             code = row_data.get(COL_CODE)
-            
+
             # Using update_or_create or get_or_create logic manually
             # "If exists - do not create double".
-            
+
             exists = Discipline.objects.filter(
-                program=program,
-                semester=semester,
-                name=discipline_name,
-                code=code
+                program=program, semester=semester, name=discipline_name, code=code
             ).exists()
-            
+
             if not exists:
                 Discipline.objects.create(
                     program=program,
@@ -293,4 +290,3 @@ class ProgramImporter:
                 created_count += 1
 
         return created_count
-

@@ -5,19 +5,18 @@
 
 ## Функциональность
 
-- **Авторизация и регистрация**: Session-based аутентификация с поддержкой CORS
-- **Парсинг данных**: Импорт учебных планов и дисциплин из Excel-файлов
-- **Загрузка через API**: Эндпоинт для загрузки программ (для сотрудников и администраторов)
-- **Группировка дисциплин**: Дисциплины группируются по названию с информацией о семестрах и видах контроля
+- **Двухфакторная авторизация**: Session-based аутентификация с поддержкой CORS
+- **Импорт данных**: Импорт учебных планов и дисциплин из Excel-файлов с использованием справочников
+- **Нормализованная БД**: Хранение данных с использованием связанных таблиц (Faculty, Direction)
 - **Анализ компетенций**: Оценка направленности программы по 7 областям (CE, CS, SE, IT, IS, CSEC, DS)
 - **Сравнение программ**: Сравнительный анализ нескольких программ
-- **Валидация данных**: Автоматическая проверка корректности загружаемых данных
+- **Административная панель**: Управление пользователями и загрузка данных
 
 ## Установка и запуск
 
 ### Предварительные требования
 
-- Python 3.10+
+- Python 3.14
 - PostgreSQL (или SQLite для разработки)
 - Redis (для кэширования)
 
@@ -33,7 +32,7 @@
 2.  **Создайте и активируйте виртуальное окружение:**
 
     ```bash
-    python3 -m venv venv
+    python3.14 -m venv venv
     source venv/bin/activate  # Для macOS/Linux
     # venv\Scripts\activate  # Для Windows
     ```
@@ -68,7 +67,7 @@
     Поместите папки с данными (например, `Fit_2023`) в директорию `data/` и запустите парсер:
 
     ```bash
-    python manage.py parse_excel
+    python manage.py import_all_data
     ```
 
 8.  **Запустите сервер разработки:**
@@ -93,17 +92,14 @@
 
 ```
 visualizer-back/
-├── data/                   # Excel файлы с учебными планами
-│   ├── Fit_2023/
-│   ├── Fit_2024/
-│   └── Fit_2025/
-├── docs/                   # Документация
+├── data/                   # Excel файлы структурированные по годам (Fit_2023/)
+├── docs/                   # Документация проекта
 ├── programs/               # Приложение для работы с программами
-│   ├── management/commands/  # Management команды (parse_excel)
-│   ├── models.py           # Модели EducationalProgram, Discipline
-│   ├── serializers.py      # Сериализаторы с группировкой дисциплин
-│   ├── services.py         # ExcelParser, ProgramImporter
-│   ├── analysis.py         # CompetencyAnalyzer
+│   ├── management/commands/  # Management команды (import_all_data.py)
+│   ├── models.py           # Нормализованные модели данных
+│   ├── serializers.py      # Сериализаторы DRF
+│   ├── services.py         # Логика импорта и парсинга (ExcelParser, ProgramImporter)
+│   ├── analysis.py         # Алгоритмы анализа компетенций
 │   └── views.py            # API views
 ├── users/                  # Приложение для пользователей
 │   ├── permissions.py      # Права доступа
@@ -118,14 +114,5 @@ visualizer-back/
 
 - [Обзор проекта](docs/project_overview.md) — Архитектура, цели и ключевые возможности
 - [API Documentation](docs/api.md) — Описание эндпоинтов API
-- [Структура Базы Данных](docs/database.md) — Описание моделей данных
-- [Парсер данных](docs/parser.md) — Инструкция по импорту данных из Excel
-
-## Технологии
-
-- **Backend**: Django 6.0, Django REST Framework 3.16
-- **База данных**: PostgreSQL (dj-database-url)
-- **Кэширование**: Redis (django-redis)
-- **CORS**: django-cors-headers
-- **Парсинг Excel**: pandas, openpyxl
-- **Деплой**: Gunicorn, WhiteNoise
+- [Структура Базы Данных](docs/database.md) — Описание нормализованной схемы данных
+- [Парсер данных](docs/parser.md) — Инструкция по импорту данных из Excel через management command
