@@ -1,18 +1,45 @@
 from django.contrib import admin
-from .models import EducationalProgram, Discipline
-
+from .models import (
+    EducationalProgram,
+    Discipline,
+    Faculty,
+    Direction,
+    EducationLevel,
+    EducationType,
+    Qualification,
+    StandardType,
+    Semester,
+    DisciplineBlock,
+    DisciplinePart,
+    DisciplineModule,
+    LoadType,
+    DisciplineMarking,
+    SemesterControl
+)
 
 @admin.register(EducationalProgram)
 class EducationalProgramAdmin(admin.ModelAdmin):
-    list_display = ("aup_number", "profile", "direction_code", "faculty", "year", "education_level")
-    list_filter = ("year", "faculty", "education_level", "education_type")
-    search_fields = ("aup_number", "profile", "direction", "direction_code")
-    ordering = ("-year", "aup_number")
-
+    list_display = ('profile', 'direction', 'year', 'faculty')
+    list_filter = ('year', 'faculty', 'education_level')
+    search_fields = ('profile', 'direction__name')
 
 @admin.register(Discipline)
 class DisciplineAdmin(admin.ModelAdmin):
-    list_display = ("code", "name", "program", "zet", "period", "block")
-    list_filter = ("block", "part", "period")
-    search_fields = ("name", "code", "program__profile", "program__aup_number")
-    list_select_related = ("program",)
+    list_display = ('name', 'code', 'program', 'semester', 'load_type')
+    list_filter = ('semester', 'load_type', 'program__faculty')
+    search_fields = ('name', 'code')
+
+# Register other models
+admin.site.register(Faculty)
+admin.site.register(Direction)
+admin.site.register(EducationLevel)
+admin.site.register(EducationType)
+admin.site.register(Qualification)
+admin.site.register(StandardType)
+admin.site.register(Semester)
+admin.site.register(DisciplineBlock)
+admin.site.register(DisciplinePart)
+admin.site.register(DisciplineModule)
+admin.site.register(LoadType)
+admin.site.register(DisciplineMarking)
+admin.site.register(SemesterControl)
