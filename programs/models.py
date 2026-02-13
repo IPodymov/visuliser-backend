@@ -68,8 +68,8 @@ class EducationalProgram(models.Model):
         blank=True,
     )
     faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE, verbose_name="Факультет")
-    profile = models.CharField(max_length=255, verbose_name="Профиль (специализация)")
-    year = models.IntegerField(verbose_name="Год набора", null=True, blank=True)
+    profile = models.CharField(max_length=255, verbose_name="Профиль (специализация)", db_index=True)
+    year = models.IntegerField(verbose_name="Год набора", null=True, blank=True, db_index=True)
 
     # Type hint for reverse relation
     disciplines: models.Manager["Discipline"]
@@ -155,7 +155,7 @@ class Discipline(models.Model):
     )
 
     code = models.CharField(max_length=50, verbose_name="Шифр", null=True, blank=True)
-    name = models.CharField(max_length=255, verbose_name="Дисциплина")
+    name = models.CharField(max_length=255, verbose_name="Дисциплина", db_index=True)
 
     amount = models.CharField(max_length=50, verbose_name="Количество", null=True, blank=True)
     measurement_unit = models.CharField(

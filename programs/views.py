@@ -18,7 +18,14 @@ class EducationalProgramViewSet(viewsets.ReadOnlyModelViewSet):
     ViewSet for viewing educational programs.
     """
 
-    queryset = EducationalProgram.objects.all()
+    queryset = EducationalProgram.objects.select_related(
+        "education_type",
+        "education_level",
+        "direction",
+        "qualification",
+        "standard_type",
+        "faculty",
+    ).prefetch_related("disciplines")
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = ProgramFilter
     search_fields = ["profile", "direction__name", "direction__code", "faculty__name"]
@@ -35,7 +42,9 @@ class EducationalProgramViewSet(viewsets.ReadOnlyModelViewSet):
         Get disciplines for a specific program, optionally filtered by semester.
         """
         program = self.get_object()
-        disciplines = Discipline.objects.filter(program=program)
+        disciplines = Discipline.objects.filter(program=program).select_related(
+            "semester", "block", "part", "module", "load_type"
+        )
 
         # Apply semester filter if provided via query params
         semester = request.query_params.get("semester")
@@ -51,7 +60,16 @@ class DisciplineViewSet(viewsets.ReadOnlyModelViewSet):
     ViewSet for viewing disciplines.
     """
 
-    queryset = Discipline.objects.all()
+    queryset = Discipline.objects.select_related(
+        "program",
+        "program__direction",
+        "program__faculty",
+        "semester",
+        "block",
+        "part",
+        "module",
+        "load_type",
+    ).all()
     serializer_class = DisciplineSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = DisciplineFilter

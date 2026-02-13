@@ -218,12 +218,30 @@ class ProgramImporter:
 
     def _save_disciplines(self, df, program):
         """Save disciplines from DataFrame to database"""
-        # We generally don't delete existing disciplines if we are updating,
-        # unless we want to do a full refresh of the program's disciplines.
-        # But if we update_or_create the program, creating duplicates is a risk.
-        # The prompt says: "Before saving new discipline, check if same one exists in this program and semester."
+        # Optimized implementation to reduce DB queries
 
         created_count = 0
+        new_disciplines = []
+
+        # Pre-fetch existing disciplines to avoid N+1 queries
+        existing_disciplines = set(
+            Discipline.objects.filter(program=program).values_list("semester__name", "name", "code")
+        )
+
+        # Local caches for dictionary lookups
+        semesters_cache = {}
+        blocks_cache = {}
+        parts_cache = {}
+        modules_cache = {}
+        load_types_cache = {}
+
+        def get_cached_obj(model, name, cache):
+            if not name:
+                return None
+            if name not in cache:
+                obj, _ = model.objects.get_or_create(name=name)
+                cache[name] = obj
+            return cache[name]
 
         for _, row in df.iterrows():
             # Handle NaN values
@@ -233,60 +251,42 @@ class ProgramImporter:
             if not discipline_name:
                 continue
 
-            # Get related objects
-            semester_name = row_data.get(COL_PERIOD)
-            semester = None
-            if semester_name:
-                semester, _ = Semester.objects.get_or_create(name=semester_name)
-
-            block_name = row_data.get(COL_BLOCK)
-            block = None
-            if block_name:
-                block, _ = DisciplineBlock.objects.get_or_create(name=block_name)
-
-            part_name = row_data.get(COL_PART)
-            part = None
-            if part_name:
-                part, _ = DisciplinePart.objects.get_or_create(name=part_name)
-
-            module_name = row_data.get(COL_MODULE)
-            module = None
-            if module_name:
-                module, _ = DisciplineModule.objects.get_or_create(name=module_name)
-
-            load_type_name = row_data.get(COL_LOAD_TYPE)
-            load_type = None
-            if load_type_name:
-                load_type, _ = LoadType.objects.get_or_create(name=load_type_name)
-
-            # Check for duplicates
-            # A duplicate is defined as same program, same semester, same name, same code?
-            # Or just same name in same semester for this program.
-            # Let's include code as well if present.
-
             code = row_data.get(COL_CODE)
+            semester_name = row_data.get(COL_PERIOD)
 
-            # Using update_or_create or get_or_create logic manually
-            # "If exists - do not create double".
+            # Check duplication tuple (semester_name, discipline_name, code)
+            # Note: code or semester might be None, so we handle that in the tuple
+            if (semester_name, discipline_name, code) in existing_disciplines:
+                continue
 
-            exists = Discipline.objects.filter(
-                program=program, semester=semester, name=discipline_name, code=code
-            ).exists()
+            # Resolve related objects using cache
+            semester = get_cached_obj(Semester, semester_name, semesters_cache)
+            block = get_cached_obj(DisciplineBlock, row_data.get(COL_BLOCK), blocks_cache)
+            part = get_cached_obj(DisciplinePart, row_data.get(COL_PART), parts_cache)
+            module = get_cached_obj(DisciplineModule, row_data.get(COL_MODULE), modules_cache)
+            load_type = get_cached_obj(LoadType, row_data.get(COL_LOAD_TYPE), load_types_cache)
 
-            if not exists:
-                Discipline.objects.create(
-                    program=program,
-                    semester=semester,
-                    block=block,
-                    part=part,
-                    module=module,
-                    load_type=load_type,
-                    code=code,
-                    name=discipline_name,
-                    amount=row_data.get(COL_AMOUNT),
-                    measurement_unit=row_data.get(COL_MEASUREMENT_UNIT),
-                    zet=row_data.get(COL_ZET),
-                )
-                created_count += 1
+            # Create Discipline instance (but don't save yet)
+            discipline = Discipline(
+                program=program,
+                semester=semester,
+                block=block,
+                part=part,
+                module=module,
+                load_type=load_type,
+                code=code,
+                name=discipline_name,
+                amount=row_data.get(COL_AMOUNT),
+                measurement_unit=row_data.get(COL_MEASUREMENT_UNIT),
+                zet=row_data.get(COL_ZET),
+            )
+            new_disciplines.append(discipline)
+
+            # Add to existing set to prevent duplicates within the same file import
+            existing_disciplines.add((semester_name, discipline_name, code))
+
+        if new_disciplines:
+            Discipline.objects.bulk_create(new_disciplines)
+            created_count = len(new_disciplines)
 
         return created_count
