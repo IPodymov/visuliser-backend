@@ -1,5 +1,5 @@
 import django_filters
-from .models import EducationalProgram, Discipline
+from .models import EducationalProgram, ProgramDiscipline
 
 
 class ProgramFilter(django_filters.FilterSet):
@@ -23,5 +23,5 @@ class DisciplineFilter(django_filters.FilterSet):
     program = django_filters.NumberFilter(field_name="program__id")
 
     class Meta:
-        model = Discipline
+        model = ProgramDiscipline
         fields = ["semester", "program"]

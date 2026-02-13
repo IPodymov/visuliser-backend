@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import (
     EducationalProgram,
+    ProgramDiscipline,
     Discipline,
     Faculty,
     Direction,
@@ -25,9 +26,18 @@ class EducationalProgramAdmin(admin.ModelAdmin):
 
 @admin.register(Discipline)
 class DisciplineAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code', 'program', 'semester', 'load_type')
+    list_display = ('name',)
+    search_fields = ('name',)
+
+@admin.register(ProgramDiscipline)
+class ProgramDisciplineAdmin(admin.ModelAdmin):
+    list_display = ('get_name', 'code', 'program', 'semester', 'load_type')
     list_filter = ('semester', 'load_type', 'program__faculty')
-    search_fields = ('name', 'code')
+    search_fields = ('discipline__name', 'code')
+
+    def get_name(self, obj):
+        return obj.discipline.name
+    get_name.short_description = 'Дисциплина'
 
 # Register other models
 admin.site.register(Faculty)

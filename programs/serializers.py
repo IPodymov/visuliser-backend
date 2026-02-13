@@ -2,7 +2,7 @@ from rest_framework import serializers
 from collections import defaultdict
 from .models import (
     EducationalProgram,
-    Discipline,
+    ProgramDiscipline,
     Semester,
     DisciplineBlock,
     DisciplinePart,
@@ -11,15 +11,16 @@ from .models import (
 )
 
 
-class DisciplineSerializer(serializers.ModelSerializer):
+class ProgramDisciplineSerializer(serializers.ModelSerializer):
     semester = serializers.StringRelatedField()
     block = serializers.StringRelatedField()
     part = serializers.StringRelatedField()
     module = serializers.StringRelatedField()
     load_type = serializers.StringRelatedField()
+    name = serializers.CharField(source="discipline.name", read_only=True)
 
     class Meta:
-        model = Discipline
+        model = ProgramDiscipline
         fields = [
             "id",
             "block",
@@ -65,7 +66,7 @@ class EducationalProgramSerializer(serializers.ModelSerializer):
     qualification = serializers.StringRelatedField()
     standard_type = serializers.StringRelatedField()
     faculty = serializers.StringRelatedField()
-    disciplines = DisciplineSerializer(many=True, read_only=True)
+    disciplines = ProgramDisciplineSerializer(many=True, read_only=True)
 
     class Meta:
         model = EducationalProgram

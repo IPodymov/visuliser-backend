@@ -20,22 +20,33 @@
 | `profile`         | CharField  | Профиль (специализация)                                             |
 | `year`            | Integer    | Год набора (извлекается из имени папки)                             |
 
-### Discipline (Дисциплина)
+### Discipline (Дисциплина - Каталог)
 
-Хранит информацию о конкретной дисциплине в рамках учебного плана.
+Справочник всех уникальных названий дисциплин.
 
-| Поле        | Тип        | Описание                                              |
-| ----------- | ---------- | ----------------------------------------------------- |
-| `id`        | Integer    | Первичный ключ                                        |
-| `program`   | ForeignKey | Ссылка на `EducationalProgram` (One-to-Many)          |
-| `block`     | ForeignKey | Блок дисциплин (ссылка на `DisciplineBlock`)          |
-| `part`      | ForeignKey | Часть (ссылка на `DisciplinePart`)                    |
-| `module`    | ForeignKey | Модуль (ссылка на `DisciplineModule`, может быть null)|
-| `load_type` | ForeignKey | Тип нагрузки (ссылка на `LoadType`)                   |
-| `code`      | CharField  | Шифр дисциплины                                       |
-| `name`      | CharField  | Название дисциплины                                   |
-| `zet`       | CharField  | Зачетные единицы (ЗЕТ)                                |
-| `period`    | ForeignKey | Период контроля (ссылка на `Semester`)                |
+| Поле   | Тип       | Описание                                  |
+| ------ | --------- | ----------------------------------------- |
+| `id`   | Integer   | Первичный ключ                            |
+| `name` | CharField | Название дисциплины (Unique, Indexed)     |
+
+### ProgramDiscipline (Дисциплина программы)
+
+Связующая таблица, хранящая информацию о конкретной дисциплине в рамках учебного плана (семестр, часы, ЗЕТ и т.д.).
+
+| Поле               | Тип        | Описание                                                          |
+| ------------------ | ---------- | ----------------------------------------------------------------- |
+| `id`               | Integer    | Первичный ключ                                                    |
+| `program`          | ForeignKey | Ссылка на `EducationalProgram` (One-to-Many)                      |
+| `discipline`       | ForeignKey | Ссылка на `Discipline` (One-to-Many)                              |
+| `semester`         | ForeignKey | Период обучения (ссылка на `Semester`, может быть null)           |
+| `block`            | ForeignKey | Блок (ссылка на `DisciplineBlock`, может быть null)               |
+| `part`             | ForeignKey | Часть (ссылка на `DisciplinePart`, может быть null)               |
+| `module`           | ForeignKey | Модуль (ссылка на `DisciplineModule`, может быть null)            |
+| `load_type`        | ForeignKey | Вид нагрузки (ссылка на `LoadType`, может быть null)              |
+| `code`             | CharField  | Шифр дисциплины                                                   |
+| `amount`           | CharField  | Количество часов (строкой, т.к. может быть "108" или "не указано")|
+| `measurement_unit` | CharField  | Единица измерения (часы, з.е. и т.д.)                             |
+| `zet`              | CharField  | Зачетные единицы (ЗЕТ)                                            |
 
 ## Справочники (Dictionaries)
 

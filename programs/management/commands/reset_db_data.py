@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
 from programs.models import (
     EducationalProgram,
+    ProgramDiscipline,
     Discipline,
     Faculty,
     Direction,
@@ -26,6 +27,7 @@ class Command(BaseCommand):
         # Delete dependent models first
         DisciplineMarking.objects.all().delete()
         SemesterControl.objects.all().delete()
+        ProgramDiscipline.objects.all().delete()
         Discipline.objects.all().delete()
         EducationalProgram.objects.all().delete()
         

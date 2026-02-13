@@ -56,7 +56,9 @@ class EducationalProgram(models.Model):
     education_level = models.ForeignKey(
         EducationLevel, on_delete=models.CASCADE, verbose_name="Уровень образования"
     )
-    direction = models.ForeignKey(Direction, on_delete=models.CASCADE, verbose_name="Направление")
+    direction = models.ForeignKey(
+        Direction, on_delete=models.CASCADE, verbose_name="Направление", db_index=True
+    )
     qualification = models.ForeignKey(
         Qualification, on_delete=models.CASCADE, verbose_name="Квалификация"
     )
@@ -114,8 +116,18 @@ class LoadType(models.Model):
 
 
 class Discipline(models.Model):
+    name = models.CharField(max_length=255, verbose_name="Название дисциплины", unique=True, db_index=True)
+
+    def __str__(self):
+        return self.name
+
+
+class ProgramDiscipline(models.Model):
     program = models.ForeignKey(
         EducationalProgram, on_delete=models.CASCADE, related_name="disciplines"
+    )
+    discipline = models.ForeignKey(
+        Discipline, on_delete=models.CASCADE, verbose_name="Дисциплина", related_name="program_disciplines"
     )
     semester = models.ForeignKey(
         Semester,
@@ -155,7 +167,6 @@ class Discipline(models.Model):
     )
 
     code = models.CharField(max_length=50, verbose_name="Шифр", null=True, blank=True)
-    name = models.CharField(max_length=255, verbose_name="Дисциплина", db_index=True)
 
     amount = models.CharField(max_length=50, verbose_name="Количество", null=True, blank=True)
     measurement_unit = models.CharField(
@@ -164,11 +175,11 @@ class Discipline(models.Model):
     zet = models.CharField(max_length=50, verbose_name="ЗЕТ", null=True, blank=True)
 
     def __str__(self):
-        return f"{self.code} - {self.name}"
+        return f"{self.code} - {self.discipline.name}"
 
 
 class DisciplineMarking(models.Model):
-    discipline = models.ForeignKey(Discipline, on_delete=models.CASCADE, related_name="markings")
+    discipline = models.ForeignKey(ProgramDiscipline, on_delete=models.CASCADE, related_name="markings")
     description = models.TextField(verbose_name="Описание", blank=True)
 
     def __str__(self):
@@ -176,7 +187,7 @@ class DisciplineMarking(models.Model):
 
 
 class SemesterControl(models.Model):
-    discipline = models.ForeignKey(Discipline, on_delete=models.CASCADE, related_name="controls")
+    discipline = models.ForeignKey(ProgramDiscipline, on_delete=models.CASCADE, related_name="controls")
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE, verbose_name="Семестр")
     control_type = models.CharField(
         max_length=100, verbose_name="Вид контроля"

@@ -1,11 +1,15 @@
 from rest_framework import viewsets, filters, status, views
 from rest_framework.parsers import MultiPartParser
 from django_filters.rest_framework import DjangoFilterBackend
-from .models import EducationalProgram, Discipline, Semester
+from django.db.models import Prefetch
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from django.views.decorators.vary import vary_on_cookie
+from .models import EducationalProgram, ProgramDiscipline, Semester
 from .serializers import (
     EducationalProgramListSerializer,
     EducationalProgramSerializer,
-    DisciplineSerializer,
+    ProgramDisciplineSerializer,
 )
 from .filters import ProgramFilter, DisciplineFilter
 from .services import ExcelParser, ProgramImporter
@@ -25,11 +29,23 @@ class EducationalProgramViewSet(viewsets.ReadOnlyModelViewSet):
         "qualification",
         "standard_type",
         "faculty",
-    ).prefetch_related("disciplines")
+    ).prefetch_related(
+        Prefetch(
+            "disciplines",
+            queryset=ProgramDiscipline.objects.select_related(
+                "discipline", "semester", "block", "part", "module", "load_type"
+            ).order_by("semester__name", "discipline__name"),
+        )
+    )
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = ProgramFilter
     search_fields = ["profile", "direction__name", "direction__code", "faculty__name"]
     ordering_fields = ["year", "direction__name", "profile"]
+
+    @method_decorator(cache_page(60 * 15))
+    @method_decorator(vary_on_cookie)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -42,8 +58,8 @@ class EducationalProgramViewSet(viewsets.ReadOnlyModelViewSet):
         Get disciplines for a specific program, optionally filtered by semester.
         """
         program = self.get_object()
-        disciplines = Discipline.objects.filter(program=program).select_related(
-            "semester", "block", "part", "module", "load_type"
+        disciplines = ProgramDiscipline.objects.filter(program=program).select_related(
+            "semester", "block", "part", "module", "load_type", "discipline"
         )
 
         # Apply semester filter if provided via query params
@@ -51,7 +67,7 @@ class EducationalProgramViewSet(viewsets.ReadOnlyModelViewSet):
         if semester:
             disciplines = disciplines.filter(semester__name__icontains=semester)
 
-        serializer = DisciplineSerializer(disciplines, many=True)
+        serializer = ProgramDisciplineSerializer(disciplines, many=True)
         return Response(serializer.data)
 
 
@@ -60,7 +76,8 @@ class DisciplineViewSet(viewsets.ReadOnlyModelViewSet):
     ViewSet for viewing disciplines.
     """
 
-    queryset = Discipline.objects.select_related(
+    queryset = ProgramDiscipline.objects.select_related(
+        "discipline",
         "program",
         "program__direction",
         "program__faculty",
@@ -70,11 +87,11 @@ class DisciplineViewSet(viewsets.ReadOnlyModelViewSet):
         "module",
         "load_type",
     ).all()
-    serializer_class = DisciplineSerializer
+    serializer_class = ProgramDisciplineSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = DisciplineFilter
-    search_fields = ["name", "code", "program__profile", "semester__name"]
-    ordering_fields = ["name", "code", "semester__name"]
+    search_fields = ["discipline__name", "code", "program__profile", "semester__name"]
+    ordering_fields = ["discipline__name", "code", "semester__name"]
 
 
 class UploadProgramView(views.APIView):

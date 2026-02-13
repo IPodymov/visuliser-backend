@@ -1,6 +1,6 @@
 import re
 from django.db.models import QuerySet
-from .models import Discipline
+from .models import ProgramDiscipline
 
 
 class CompetencyAnalyzer:
@@ -99,16 +99,16 @@ class CompetencyAnalyzer:
         ],
     }
 
-    def analyze(self, disciplines: QuerySet[Discipline]) -> dict:
+    def analyze(self, disciplines: QuerySet[ProgramDiscipline]) -> dict:
         scores = {key: 0.0 for key in self.KEYWORDS.keys()}
         total_zet = 0.0
 
-        for discipline in disciplines:
-            zet_val = self._parse_zet(discipline.zet)
+        for pd_obj in disciplines:
+            zet_val = self._parse_zet(pd_obj.zet)
             if zet_val <= 0:
                 continue
 
-            name_lower = discipline.name.lower()
+            name_lower = pd_obj.discipline.name.lower()
             matched = False
 
             for category, patterns in self.KEYWORDS.items():
